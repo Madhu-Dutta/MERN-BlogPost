@@ -26,6 +26,7 @@ router.get('/me', auth, async(req, res) => {
         if(!profile){
             return res.status(400).json({msg : 'There is no profile for user'})
         }
+        res.json(profile);
     }
     catch(err){
         console.error(err.message);
@@ -164,6 +165,29 @@ router.get('/user/:user_id', async(req, res) => {
         if(err.kind === "ObjectId"){
             return res.status(400).json({msg: 'Profile not found'});
         }
+        res.status(500).send('Server error');
+    }
+})
+
+//@Route DELETE api/profile/user/:user_id
+//@desc DELETE profile, user and posts
+//@Access Private
+
+router.delete('/', auth, async(req, res) => {
+    try {
+        //@todo - remove posts
+
+        //Remove Profile
+        await Profile.findOneAndRemove({user: req.user.id});
+
+        //Remove User
+        await User.findOneAndRemove({_id: req.user.id});
+
+        //send the profile info as json objects
+        res.json({msg: 'User deleted'});
+
+    } catch (err) {
+        console.error(err.message);
         res.status(500).send('Server error');
     }
 })
