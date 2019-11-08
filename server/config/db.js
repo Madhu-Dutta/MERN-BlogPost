@@ -9,9 +9,11 @@ const db = config.get('mongoURI');
 const connectDB = async () => {
     try{
         await mongoose.connect(db, 
-            // Add the below objects to avoid depriction warnings
+            // Add the below objects are there to avoid mongoose depriction warnings
             {useNewUrlParser: true,
-             useUnifiedTopology: true }
+             useUnifiedTopology: true,
+             useCreateIndex: true
+             }
             );
         console.log('Mondodb connected');
     }
