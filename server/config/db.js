@@ -12,7 +12,8 @@ const connectDB = async () => {
             // Add the below objects are there to avoid mongoose depriction warnings
             {useNewUrlParser: true,
              useUnifiedTopology: true,
-             useCreateIndex: true
+             useCreateIndex: true,
+             useFindAndModify: false
              }
             );
         console.log('Mondodb connected');
