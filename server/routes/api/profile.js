@@ -4,10 +4,12 @@
 const express = require('express');
 const router = express.Router();
 const {check, validationResult} = require('express-validator');
+const request = require('request');
 
 const auth = require('../../middleware/auth');
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
+const config = require('config');
 
 //@Route GET api/profile/me
 //@desc Test Route
@@ -169,7 +171,7 @@ router.get('/user/:user_id', async(req, res) => {
     }
 })
 
-//@Route DELETE api/profile/user/:user_id
+//@Route DELETE api/profile
 //@desc DELETE profile, user and posts
 //@Access Private
 
@@ -189,6 +191,207 @@ router.delete('/', auth, async(req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
+    }
+})
+
+//@Route PUT api/profile/experience
+//@desc Update profile with Experience Object   
+//@Access Private
+
+//Profile experience will need some validation checks. Frontend will use this fields to enter user's data via form
+router.put('/experience', [auth , [
+    check('title', 'Title is required').not().isEmpty(),
+    check('company', 'Company is required').not().isEmpty(),
+    check('from', 'From date is required').not().isEmpty()
+]] , async (req, res) => {
+    const errors = validationResult(req);
+    //check for errors
+    if(!errors.isEmpty()){
+        return res.status(400).json({errors: errors.array()});
+    }
+
+    //Pull req body data
+    const{
+        title,
+        company,
+        location,
+        to,
+        from,
+        current,
+        description
+    } = req.body;
+
+    //Create data from what user submits
+    const newExp = {
+        title,
+        company,
+        location,
+        to,
+        from,
+        current,
+        description
+    }
+
+    try{
+        //user : req.user.id as we are using protected/private routes
+        const profile = await Profile.findOne({user: req.user.id}); 
+        //unshift to push at the end of array. Newest first
+        profile.experience.unshift(newExp);
+        await profile.save();
+        res.json(profile);
+    }
+    catch(err){
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+})
+
+//@Route DELETE api/profile/experience/:exp_id
+//@desc Delete Experience from profile
+//@Access Private
+
+router.delete('/experience/:exp_id', auth, async(req, res) => {
+    try {
+        //Get the correct profile by user id
+        const profile = await Profile.findOne({user: req.user.id}); 
+
+        //Get the index of experience object
+        const removeIndex = 
+        profile.experience
+        //Object id
+        .map(item => item.id)
+        //index matches the id
+        .indexOf(req.params.exp_id)
+
+        //remove the experience that matches the particular index and remove 1 element
+        profile.experience.splice(removeIndex, 1);
+
+        //save the updated profile
+        await profile.save();
+
+        //send back the res as json obj
+        res.json(profile);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');  
+    }
+})
+
+//@Route PUT api/profile/education
+//@desc Update profile with Education Object   
+//@Access Private
+
+router.put('/education', [auth , [
+    check('school', 'School is required').not().isEmpty(),
+    check('degree', 'Degree is required').not().isEmpty(),
+    check('fieldofstudy', 'Field of study is required').not().isEmpty(),
+    check('from', 'From date is required').not().isEmpty()
+]] , async (req, res) => {
+    const errors = validationResult(req);
+    //check for errors
+    if(!errors.isEmpty()){
+        return res.status(400).json({errors: errors.array()});
+    }
+
+    //Pull req body data
+    const{
+        school,
+        degree,
+        fieldofstudy,
+        from,
+        to,
+        current,
+        description
+    } = req.body;
+
+    //Create data from what user submits
+    const newEdu = {
+        school,
+        degree,
+        fieldofstudy,
+        from,
+        to,
+        current,
+        description
+    }
+
+    try{
+        //user : req.user.id as we are using protected/private routes
+        const profile = await Profile.findOne({user: req.user.id}); 
+        //unshift to push at the end of array. Newest first
+        profile.education.unshift(newEdu);
+        await profile.save();
+        res.json(profile);
+    }
+    catch(err){
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+})
+
+//@Route DELETE api/profile/education/:edu_id
+//@desc Delete Education from profile
+//@Access Private
+
+router.delete('/education/:edu_id', auth, async(req, res) => {
+    try {
+        //Get the correct profile by user id
+        const profile = await Profile.findOne({user: req.user.id}); 
+
+        //Get the index of education object
+        const removeIndex = 
+        profile.education
+        //Object id
+        .map(item => item.id)
+        //index matches the id
+        .indexOf(req.params.edu_id)
+
+        //remove the education that matches the particular index and remove 1 element
+        profile.education.splice(removeIndex, 1);
+
+        //save the updated profile
+        await profile.save();
+
+        //send back the res as json obj
+        res.json(profile);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');  
+    }
+})
+
+//@Route GET api/profile/github/:username
+//@desc Get user repos from github
+//@Access Public
+router.get('/github/:username', async (req, res) => {
+    try {        
+        //get users by username
+        //limit 5 per page and sorted in order posts are created in asc order
+        const options = {
+            uri: encodeURI(`https://api.github.com/users/${
+                req.params.username
+            }/repos?per_page=5&sort=created:asc&client_id=${config.get(
+                'githubClientId'
+            )}&client_secret=${config.get('githubSecret')}`),
+            method: 'GET',
+            headers: { 'user-agent': 'node.js' }
+            };
+        
+        //request takes 2 parameters = option and a callback function with response, error and body
+        request(options, (error, response, body) => {
+            if(error) console.error(error);
+            //if response is not 200(success) then send a 404(not found) 
+            if(response.statusCode !== 200){
+                res.status(404).json({msg: 'No github profile found'});
+            }
+            //response returns a json object
+            res.json(JSON.parse(body));
+        })
+    } catch (err) {
+        console.error(err.message);
+        return res.status(500).send('Server error');
     }
 })
 
