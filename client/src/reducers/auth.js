@@ -1,13 +1,24 @@
 //import from global action types
-import {REGISTER_SUCCESS, REGISTER_FAIL, USER_LOADED, AUTH_ERROR, LOGIN_SUCCESS, LOGIN_FAIL, LOGOUT} from '../actions/types';
+import
+{  
+    REGISTER_SUCCESS,
+    REGISTER_FAIL,
+    USER_LOADED,
+    AUTH_ERROR,
+    LOGIN_SUCCESS,
+    LOGIN_FAIL,
+    LOGOUT
+} from '../actions/types';
 
 //Initial state
+//Loading is only true in initial state
+//isAuthenticated is null in initial state
 const initialState = {
     token: localStorage.getItem('token'),
     isAuthenticated: null,
     loading: true,
     user: null
-}
+};
 
 export default function(state=initialState, action){
     const{type, payload} = action;
@@ -38,9 +49,9 @@ export default function(state=initialState, action){
                     ...state,
                     token: null, 
                     isAuthenticated: false,
-                    loading: true
-                }          
+                    loading: false
+                };         
             default:
                 return state;   
-    }
-}
+            }
+        }
