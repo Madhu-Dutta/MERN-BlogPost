@@ -1,7 +1,7 @@
-import React, {Fragment} from 'react';
+import React, {Fragment, useEffect} from 'react';
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import './App.css';
-import { Navbar } from './component/Layout/Navbar';
+import Navbar from './component/Layout/Navbar';
 import Landing from './component/Layout/Landing';
 import Login from './component/Auth/Login';
 import Register from './component/Auth/Register';
@@ -11,8 +11,22 @@ import Register from './component/Auth/Register';
 import {Provider} from 'react-redux';
 import store from './store';
 import Alert from './component/Layout/Alert';
+import setAuthToken from './utils/setAuthToken';
+import {loadUser} from './actions/auth';
+
+
+//check localStorage for token
+if(localStorage.token){
+  setAuthToken(localStorage.token);
+}
 
 const App = () => {
+  //Life cycle hook - useEffect. Used instead of componentDidMount
+  //[] as second arg which makes sure useEffect runs once
+  useEffect(() => {
+    store.dispatch(loadUser());
+  }, []);
+
   return (
     <Provider store={store}>
       <Router>

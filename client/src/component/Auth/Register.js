@@ -1,5 +1,5 @@
  import React from 'react';
- import {Link} from 'react-router-dom';
+ import {Link, Redirect} from 'react-router-dom';
  import {Fragment, useState} from 'react';
  import PropTypes from 'prop-types';
  //Connect component to redux using {connect}
@@ -7,8 +7,9 @@
 
  //import the alerts from reducers
  import {setAlert} from '../../actions/alert';
+ import {register} from '../../actions/auth';
 
- const Register = ({setAlert}) => {
+ const Register = ({setAlert, register, isAuthenticated}) => {
      //formData = state, setFormData = setState()
         //useSate has default/initial state = {}
      const [formData, setFormData] = useState({
@@ -36,8 +37,14 @@
             setAlert('Password don\'t match', 'danger');
         }
         else{
-            console.log('Successful Registration');
+            // console.log('Successful Registration');
+            register({name, email, password});
         }
+     }
+
+     //Redirect to dashboard
+     if(isAuthenticated){
+        return(<Redirect to="/dashboard" />)
      }
 
      return (
@@ -58,7 +65,7 @@
                         value={name}
                         //Onchange handler
                         onChange={(e) => onChange(e)}
-                        required
+                        // required
                     />
                 </div>
                 
@@ -71,7 +78,7 @@
                         value={email}
                         //Onchange handler
                         onChange={(e) => onChange(e)}
-                        required
+                        // required
                     />
                     <small className="form-text">
                         This site uses Gravatar, so if you want to use a profile image use a Gravatar email
@@ -86,8 +93,8 @@
                         value={password}
                         //Onchange handler
                         onChange={(e) => onChange(e)}
-                        minLength="6"
-                        required
+                        // minLength="6"
+                        // required
                     />
                 </div>
                 <div className="form-group">
@@ -99,8 +106,8 @@
                         value={password2}
                         //Onchange handler
                         onChange={(e) => onChange(e)}
-                        minLength="6"
-                        required
+                        // minLength="6" 
+                        // required
                     />
                 </div>
                 <input 
@@ -117,9 +124,15 @@
  }
 
  Register.propTypes = {
-    setAlert: PropTypes.func.isRequired
+    setAlert: PropTypes.func.isRequired,
+    register: PropTypes.func.isRequired,
+    isAuthenticated: PropTypes.bool
  }
 
+ const mapStateToProps = state => ({
+    isAuthenticated: state.auth.isAuthenticated
+})
+
 //export register,connect(anyStatewanttomap, {action})
-export default connect(null, {setAlert})(Register);
+export default connect(mapStateToProps, {setAlert,  register})(Register);
  
