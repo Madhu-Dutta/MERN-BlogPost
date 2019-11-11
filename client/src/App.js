@@ -5,6 +5,7 @@ import Navbar from './component/Layout/Navbar';
 import Landing from './component/Layout/Landing';
 import Login from './component/Auth/Login';
 import Register from './component/Auth/Register';
+import Dashboard from './component/dashboard/Dashboard';
 
 //Redux
 //Provider comes from react-redux package. It combines both the react and redux apps
@@ -13,6 +14,7 @@ import store from './store';
 import Alert from './component/Layout/Alert';
 import setAuthToken from './utils/setAuthToken';
 import {loadUser} from './actions/auth';
+import PrivateRoute from './component/routing/PrivateRoute';
 
 
 //check localStorage for token
@@ -40,6 +42,7 @@ const App = () => {
           <Switch>
               <Route exact path="/register" component={Register} />
               <Route exact path="/login" component={Login} />
+              <PrivateRoute exact path="/dashboard" component={Dashboard} />
           </Switch>
         </section>
       </Fragment>
